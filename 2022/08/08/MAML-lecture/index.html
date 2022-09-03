@@ -1,0 +1,740 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/brain.png">
+  <link rel="icon" href="/img/brain.png">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/katex.min.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="hz">
+  <meta name="keywords" content="韩昊哲">
+  
+    <meta name="description" content="Model-Agnostic Meta-Learning for Fast Adaptation of Deep Networks阅读首先是标题解读标题中Model-Agnostic说明该算法与模型无关 meta-learning，即元学习，利用以往的知识经验来指导新任务的学习。meta-learning的算法有很多类型，如autoML可以为不同的训练任务输出不同的神经网络结构和超参数，而本文提出">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MAML_lecture">
+<meta property="og:url" content="http://hhzsjtu.com/2022/08/08/MAML-lecture/index.html">
+<meta property="og:site_name" content="hz">
+<meta property="og:description" content="Model-Agnostic Meta-Learning for Fast Adaptation of Deep Networks阅读首先是标题解读标题中Model-Agnostic说明该算法与模型无关 meta-learning，即元学习，利用以往的知识经验来指导新任务的学习。meta-learning的算法有很多类型，如autoML可以为不同的训练任务输出不同的神经网络结构和超参数，而本文提出">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2022-08-07T17:04:17.000Z">
+<meta property="article:modified_time" content="2022-08-07T17:07:36.451Z">
+<meta property="article:author" content="hz">
+<meta property="article:tag" content="韩昊哲">
+<meta name="twitter:card" content="summary_large_image">
+  
+  
+  
+  <title>MAML_lecture - hz</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/KaTeX/0.15.6/katex.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1749284_hj8rtnfg7um.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/font_1736178_lbnruvf0jn.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"hhzsjtu.com","root":"/","version":"1.9.2","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":""},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":true,"follow_dnt":false,"baidu":"1db95ee5252502ec730d62da221299dc","google":null,"gtag":null,"tencent":{"sid":null,"cid":null},"woyaola":null,"cnzz":null,"leancloud":{"app_id":null,"app_key":null,"server_url":null,"path":null,"ignore_local":false}},"search_path":"/local-search.xml"};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+  
+    <!-- Baidu Analytics -->
+    <script async>
+      if (!Fluid.ctx.dnt) {
+        var _hmt = _hmt || [];
+        (function() {
+          var hm = document.createElement("script");
+          hm.src = "https://hm.baidu.com/hm.js?1db95ee5252502ec730d62da221299dc";
+          var s = document.getElementsByTagName("script")[0];
+          s.parentNode.insertBefore(hm, s);
+        })();
+      }
+    </script>
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+  
+<meta name="generator" content="Hexo 6.2.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>Haozhe Han</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/">
+                <i class="iconfont icon-home-fill"></i>
+                首页
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/">
+                <i class="iconfont icon-archive-fill"></i>
+                归档
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/">
+                <i class="iconfont icon-category-fill"></i>
+                分类
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/">
+                <i class="iconfont icon-tags-fill"></i>
+                标签
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">
+                <i class="iconfont icon-user-fill"></i>
+                关于
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              &nbsp;<i class="iconfont icon-search"></i>&nbsp;
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">&nbsp;<i
+                class="iconfont icon-dark" id="color-toggle-icon"></i>&nbsp;</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/StephansQuintet.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="MAML_lecture"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2022-08-08 01:04" pubdate>
+          2022年8月8日 凌晨
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          2.9k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          24 分钟
+        
+      </span>
+    
+
+    
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <!-- SEO header -->
+            <h1 style="display: none">MAML_lecture</h1>
+            
+              <p class="note note-info">
+                
+                  
+                    本文最后更新于：2022年8月8日 凌晨
+                  
+                
+              </p>
+            
+            
+              <div class="markdown-body">
+                
+                <h2 id="Model-Agnostic-Meta-Learning-for-Fast-Adaptation-of-Deep-Networks阅读"><a href="#Model-Agnostic-Meta-Learning-for-Fast-Adaptation-of-Deep-Networks阅读" class="headerlink" title="Model-Agnostic Meta-Learning for Fast Adaptation of Deep Networks阅读"></a>Model-Agnostic Meta-Learning for Fast Adaptation of Deep Networks阅读</h2><h3 id="首先是标题解读"><a href="#首先是标题解读" class="headerlink" title="首先是标题解读"></a>首先是标题解读</h3><p>标题中Model-Agnostic说明该算法与模型无关</p>
+<p>meta-learning，即元学习，利用以往的知识经验来指导新任务的学习。meta-learning的算法有很多类型，如autoML可以为不同的训练任务输出不同的神经网络结构和超参数，而本文提出的算法只改变网络的初始参数，并不改变网络的结构，实现更为方便。</p>
+<p>Fast Adaptation，迅速适应，说明该算法的收敛速度很快，效率高。</p>
+<h3 id="算法简介"><a href="#算法简介" class="headerlink" title="算法简介"></a>算法简介</h3><p>该算法可以用于任何采用梯度下降算法的模型，如分类，回归，强化学习等</p>
+<p>训练目标是为了得到一套模型的敏感的初始参数$\theta$,，在遇到新的任务时，对$\theta$进行一次或几次梯度更新即可最大化新任务的性能。</p>
+<p>文中作者对敏感定义为：敏感度高的参数，即使只对其进行小的局部更新也会使得损失函数快速下降。</p>
+<p>这样，找到了最敏感的初始参数，几步更新就可以使loss值迅速降低，所以说训练速度快</p>
+<h3 id="预备知识"><a href="#预备知识" class="headerlink" title="预备知识"></a>预备知识</h3><p>Few-shot learning，小样本学习，即数据量非常少的学习任务，为了使模型能够快速适应新的任务，一般进行的都是小样本学习。常用方法为N-way K-shot，在训练和测试时抽取N个类别，每个类别K个样本（一次只需要N*K个数据，数据量非常小）</p>
+<p>在元学习任务中数据集是由一个一个的任务task组成，与传统机器学习任务的训练集与测试集相同，task也分为Training task和Testing task，下图例子中说明了模型在猫狗分类和水果分类这两个任务上进行学习，在交通工具分类任务上进行测试。</p>
+<h3 id="问题定义"><a href="#问题定义" class="headerlink" title="问题定义"></a>问题定义</h3><p>将任务做如下定义：</p>
+<p>$\tau&#x3D;${$\mathcal{L}(x_1,a_1,\cdots,x_H,a_H),q(x_1),q(x_{t+1}|x_t,a_t),H$}</p>
+<p>$\mathcal{L}$为损失函数（在做分类时，损失函数使用的是交叉熵，回归问题，损失函数使用的是均方误差，强化学习使用负的奖励函数</p>
+<p>$q(x_1)$为初始分布的观测，</p>
+<p>$q(x_{t+1}|x_t,a_t)$为转移函数，H为episode的长度，对于独立同分布的监督学习问题H&#x3D;1，强化学习任务中H代表训练选取轨迹的长度。模型通过在每个时刻 t 选择动作at 产生长度为 H 的样本。</p>
+<h3 id="大致流程"><a href="#大致流程" class="headerlink" title="大致流程"></a>大致流程</h3><p>先从所有任务ptau中选出一个任务tau——i，对其进行Kshot训练，然后计算出该任务的损失函数</p>
+<h3 id="算法核心"><a href="#算法核心" class="headerlink" title="算法核心"></a>算法核心</h3><p>个人认为这三个公式很好地解释了这个模型，左边是原文出现的式子，右边是我自己改写的，可能会更好理解</p>
+<p>第一个式子讲的是在遇到一个新任务时，直接将西塔代入新任务做梯度更新，$\theta_i^{‘}$代表在第i个任务上学出来的模型参数，此处的$\theta$为该算法的训练目标</p>
+<p>接下来是目标函数，这个式子的含义是是，最小化所有训练过的任务的损失函数值之和<br>$$<br>L(\theta)&#x3D;\sum\limits_{i&#x3D;1}^Nl_i(\theta_i^{‘})<br>$$<br>第三个式子就是利用第二个式子计算出的损失值对$\theta$进行梯度下降更新。</p>
+<p>该图是在paper中出现的，这里箭头指的是不同任务损失函数梯度的方向，代表着不同的任务，不同的任务的初始化参数有着不同的最优值，如任务一的梯度方向是朝这，最优值就在这个方向附近，也就是图中的西塔1星。一个好的$\theta$一般是出现在不同任务的最优值附近，不论到哪个任务的最优值都不需要走太远。</p>
+<h3 id="MAML算法解释"><a href="#MAML算法解释" class="headerlink" title="MAML算法解释"></a>MAML算法解释</h3><p>输入：任务分布$p(\tau)$和两个学习率$\alpha$和$\beta$，分别是内层与外层循环的学习率。算法流程如下：</p>
+<ol>
+<li><p>随机初始化参数$\theta$</p>
+</li>
+<li><p>进行一个while循环</p>
+<p>在循环内部1. 取一个batch size数量的任务，对于每一个任务，使用$\theta$作为初始化参数，先从得到的K个样本中计算得到梯度，然后做一次梯度下降更新得到参数西塔一瞥，每完成一个batch size的任务后对参数$\theta$进行一次梯度下降更新。然后结束循环。</p>
+</li>
+</ol>
+<p>可以注意到在内层循环中对单个任务的梯度更新只做了一次，就是第6步，其实也可以进行多步更新。只更新一次原因是可以减少运算量，还有一种可能是由于few-shot meta-learning样本量很少的特性，如果迭代次数多的话可能会导致过拟合。</p>
+<p>然后右边是不同任务的损失函数，从上到下分别是均方误差，交叉熵，负的奖励函数。</p>
+<p>将这些奖励函数应用到算法中，如图，只对内层循环做了修改，值得注意的是强化学习的期望回报由于环境未知并不能求导，在算法中梯度的计算使用的是Policy Gradient</p>
+<h3 id="MAML与预训练（Pretraining）的区别，通过这个例子能够加深对MAML的理解"><a href="#MAML与预训练（Pretraining）的区别，通过这个例子能够加深对MAML的理解" class="headerlink" title="MAML与预训练（Pretraining）的区别，通过这个例子能够加深对MAML的理解"></a>MAML与预训练（Pretraining）的区别，通过这个例子能够加深对MAML的理解</h3><p>Pretraining:更看重现在表现如何</p>
+<p>MAML:更看重模型的潜力</p>
+<p>第一张图是pretraining的模式，它的损失函数是当前所有任务的损失函数之和，所以找到了这个点，对两个任务的效果都较好，但对于任务二来说并没有达到全局最优。</p>
+<p>接下来是MAML的模式，他的损失函数是经过更新后的模型的损失函数。如图，选到了这个点，经过若干次更新后，西塔1往左走，西塔2往右走，都能够到达自己的全局最优。所以说MAML更看重模型的潜力。</p>
+<h3 id="实验"><a href="#实验" class="headerlink" title="实验"></a>实验</h3><p>第一个实验是函数拟合</p>
+<ol>
+<li>先给定一个目标函数$y&#x3D;asin(x+b)$</li>
+<li>从目标函数中随机采样出K个点用于训练</li>
+<li>用这些采样点估计出目标函数</li>
+</ol>
+<p>通过取不同的a与b可以制作出不同的任务，这些任务放在一起就构成了metalearing的训练集预测试集</p>
+<p>看实验结果，左边是pretrain的结果，经过10次更新后拟合效果仍较差。右边是MAML的结果，10次更新后已经基本符合函数曲线了，效果较好。从这个均方误差损失函数下降速度也可以看出MAML更优。</p>
+<h3 id="图像分类"><a href="#图像分类" class="headerlink" title="图像分类"></a>图像分类</h3><p>然后是图像分类，加粗字体是本文的方法，精确性较之前的放方法或多或少有点提升。5way1shot的分类任务准确率提升最多，说明该模型在样本量极小的情况下有着较大的优势。</p>
+<h3 id="强化学习"><a href="#强化学习" class="headerlink" title="强化学习"></a>强化学习</h3><p>最后是强化学习，本文进行了三个实验，</p>
+<p>第一个是2维寻找目标，奖励函数是当前位置到目标点距离的平方的相反数，当走了100步或者到达目标点时结束寻找。</p>
+<p>第二个是要求agent在特定速度运动，奖励函数是当前速度与目标速度的绝对值的相反数。</p>
+<p>第三个是要求agent向着一个特定的方向运动，奖励函数是agent向前或向后运动的速度。</p>
+<p>然后看实验结果</p>
+<p>实验中除了MAML外，作者还给出了三种对比算法：（1）pretrained：用所有任务对策略进行预训练，然后在测试阶段微调；（2）random：用随机初始化的参数训练策略；（3）oracle：将任务参数（目标位置、方向、速度）当做已知信息添加到状态中。</p>
+<p>在导航任务中MAML的agent能快速到达目标点，平均回报更高，在定速和定向运动中maml训练得到的agent的收敛速度和奖励函数的表现也都是最好的。</p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/Meta-Learing/" class="category-chain-item">Meta Learing</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>MAML_lecture</div>
+      <div>http://hhzsjtu.com/2022/08/08/MAML-lecture/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>hz</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2022年8月8日</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>更新于</div>
+          <div>2022年8月8日</div>
+        </div>
+      
+      <div class="license-meta-item">
+        <div>许可协议</div>
+        <div>
+          
+            
+            
+              <a target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+              <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                <i class="iconfont icon-by"></i>
+              </span>
+              </a>
+            
+          
+        </div>
+      </div>
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2022/09/03/2022-08-%E6%9C%88%E5%BA%A6%E6%80%BB%E7%BB%93/" title="2022.08 月度总结">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">2022.08 月度总结</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2022/08/08/%E4%B8%83%E6%9C%88%E6%B5%81%E7%81%AB%EF%BC%8C%E5%85%AB%E6%9C%88%E6%B5%81%E6%B1%97%E2%80%94%E2%80%948-7%E9%9A%8F%E6%83%B3/" title="七月流火，八月流汗——8.7随想">
+                        <span class="hidden-mobile">七月流火，八月流汗——8.7随想</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  <article id="comments" lazyload>
+    
+  <div id="gitalk-container"></div>
+  <script type="text/javascript">
+    Fluid.utils.loadComments('#gitalk-container', function() {
+      Fluid.utils.createCssLink('/css/gitalk.css')
+      Fluid.utils.createScript('https://lib.baomitu.com/gitalk/1.7.2/gitalk.min.js', function() {
+        var options = Object.assign(
+          {"clientID":"8b2d9a99e856d473b436","clientSecret":"8e00198dce790badd41c9a507e04b1ed9a9ba3b4","repo":"gittalk_lib","owner":"fzfd","admin":["fzfd"],"language":"zh-CN","labels":["Gitalk"],"perPage":10,"pagerDirection":"last","distractionFreeMode":false,"createIssueManually":true,"proxy":"https://cors-anywhere.azm.workers.dev/https://github.com/login/oauth/access_token"},
+          {
+            id: '6c5c507722dbf837ff83606c86b6e751'
+          }
+        )
+        var gitalk = new Gitalk(options);
+        gitalk.render('gitalk-container');
+      });
+    });
+  </script>
+  <noscript>Please enable JavaScript to view the comments</noscript>
+
+
+  </article>
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header"><i class="iconfont icon-list"></i>&nbsp;目录</p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+  
+  
+
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+  
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.0/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.18.2/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      headingSelector : CONFIG.toc.headingSelector || 'h1,h2,h3,h4,h5,h6',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      collapseDepth   : CONFIG.toc.collapseDepth || 0,
+      scrollSmooth    : true,
+      headingsOffset  : -boardTop
+    });
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.10/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/4.3.1/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        tex2jax: {
+            inlineMath: [ ["$","$"], ["\\(","\\)"] ],
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+            processEscapes: true
+        }
+    });
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax();
+        for (var i = 0; i < all.length; ++i)
+            all[i].SourceElement().parentNode.className += ' has-jax';
+    });
+</script>
+<script src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+</body>
+</html>
