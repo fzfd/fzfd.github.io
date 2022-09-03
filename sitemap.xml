@@ -2,6 +2,17 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://hhzsjtu.com/2022/09/03/2022-08-%E6%9C%88%E5%BA%A6%E6%80%BB%E7%BB%93/</loc>
+    
+    <lastmod>2022-09-03T15:08:51.803Z</lastmod>
+    
+    <date>1662209685000</date>
+    <title>2022.08 月度总结 | hz</title>
+    
+    <desc></desc>
+  </url>
+  
+  <url>
     <loc>http://hhzsjtu.com/2022/07/26/CS285-Lec5-Policy-Gradients/</loc>
     
     <lastmod>2022-09-03T14:16:00.595Z</lastmod>
@@ -19,17 +30,6 @@
     
     <date>1658675950000</date>
     <title>我的第一篇博客 | hz</title>
-    
-    <desc></desc>
-  </url>
-  
-  <url>
-    <loc>http://hhzsjtu.com/2022/09/03/2022-08-%E6%9C%88%E5%BA%A6%E6%80%BB%E7%BB%93/</loc>
-    
-    <lastmod>2022-09-03T14:15:12.589Z</lastmod>
-    
-    <date>1662209685000</date>
-    <title>2022.08 月度总结 | hz</title>
     
     <desc></desc>
   </url>
