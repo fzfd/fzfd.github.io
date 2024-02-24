@@ -13,14 +13,14 @@
 <meta property="og:site_name" content="Hexo">
 <meta property="og:description" content="任务介绍本工作将利用起不同session，不同task，不同subject的神经信号数据，运用Mae + transformer的结构训练出能够解码神经信号的decoder。 摘要与行业现状脑机接口记录下的神经集群活动蕴含丰富的信息，现有的模型通常是针对单个实验设计的，数据量被设计为单个session内可收集的量，由于数据量的不足，dnn的训练存在过拟合的现象，并且无法处理神经元之间的时空关联性。">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="http://example.com/%E7%A5%9E%E7%BB%8F%E4%BF%A1%E5%8F%B7%E8%A7%A3%E7%A0%81/mae.jpg">
-<meta property="og:image" content="http://example.com/%E7%A5%9E%E7%BB%8F%E4%BF%A1%E5%8F%B7%E8%A7%A3%E7%A0%81/ndt2.jpg">
+<meta property="og:image" content="http://example.com/2024/02/24/%E7%A5%9E%E7%BB%8F%E4%BF%A1%E5%8F%B7%E8%A7%A3%E7%A0%81/mae.jpg">
+<meta property="og:image" content="http://example.com/2024/02/24/%E7%A5%9E%E7%BB%8F%E4%BF%A1%E5%8F%B7%E8%A7%A3%E7%A0%81/ndt2.jpg">
 <meta property="article:published_time" content="2024-02-24T06:51:13.000Z">
 <meta property="article:modified_time" content="2024-02-24T06:59:29.707Z">
 <meta property="article:author" content="John Doe">
 <meta property="article:tag" content="技术">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="http://example.com/%E7%A5%9E%E7%BB%8F%E4%BF%A1%E5%8F%B7%E8%A7%A3%E7%A0%81/mae.jpg">
+<meta name="twitter:image" content="http://example.com/2024/02/24/%E7%A5%9E%E7%BB%8F%E4%BF%A1%E5%8F%B7%E8%A7%A3%E7%A0%81/mae.jpg">
   
     <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
   
@@ -103,13 +103,15 @@
 <h3 id="领域现状："><a href="#领域现状：" class="headerlink" title="领域现状："></a>领域现状：</h3><p>神经数据集之间基本没有相似性，但训练模型的方法都极为相似，一般都采用MAE作为预训练目标，用transformer（或cnn）作为backbone。脑机接口的数据具有不稳定性，不稳定性来自于信号采集设备的高度敏感性。目前领域内主流的聚合不同数据的方法为stitching。ndt2期望研究随着数据量的增加是否有利于模型的表现，尽管数据之间的相关性会随着数据量的增加而降低。</p>
 <h3 id="stitching方法："><a href="#stitching方法：" class="headerlink" title="stitching方法："></a>stitching方法：</h3><p>大致思路是通过对readin和readout的学习提取神经元信号之间的稳定的子空间，背后主要的算法是em算法，期望最大化算法。但由于实验发现stitching方法并不理想，此处不展开介绍。</p>
 <h2 id="模型介绍："><a href="#模型介绍：" class="headerlink" title="模型介绍："></a>模型介绍：</h2><p>MAE：masked autoencoder，mae简单来说就是给图像加上很高比例的mask，然后设计编解码器来重建图像。大致流程如下图，先把加了mask的图片通过encoder进行编码，得到一堆tokens（蓝色块），然后再把这些tokens加上mask送进decoder重建得到图片。其中，给token加mask的位置与原图像mask的位置相同。加mask的比例非常高（75%左右），而且是完全随机采样的mask，防止模型能够轻易从有规律的图像采样中学到信息。</p>
-<p><img src="/%E7%A5%9E%E7%BB%8F%E4%BF%A1%E5%8F%B7%E8%A7%A3%E7%A0%81/mae.jpg" alt="mae.pic"></p>
+<img src="/2024/02/24/%E7%A5%9E%E7%BB%8F%E4%BF%A1%E5%8F%B7%E8%A7%A3%E7%A0%81/mae.jpg" class="" title="mae.pic">
+
 <p>结合NDT2的设计来具体讲MAE的细节。</p>
 <p>先看encoder，这里的图像就是把k条神经元的活动序列堆叠起来变成类似二维图像的形式，encoder的输入是unmasked的patches，也就是图像加了mask后的剩余的可见部分，然后和任务信息和图像位置信息等一起输入encoder进行训练。</p>
 <p>decoder处理encoder编码得到的tokens，也就是encoder的输出，同时的decoder也要处理masked的token，也就是mask的位置信息，所有的mask token公用一个记录mask位置的向量。</p>
 <p>作者设计了两个解码器，一个解码出神经活动信号，另一个直接解码出生物的行为，可以直接用于实时预测。</p>
 <p>右边的图B讲的是数据的相关性与数据量的关系。随着不同task，不同subject，不同session数据集的加入，训练数据量在上升，但数据的相关性也在减弱。</p>
-<p><img src="/%E7%A5%9E%E7%BB%8F%E4%BF%A1%E5%8F%B7%E8%A7%A3%E7%A0%81/ndt2.jpg" alt="ndt2.jpg"></p>
+<img src="/2024/02/24/%E7%A5%9E%E7%BB%8F%E4%BF%A1%E5%8F%B7%E8%A7%A3%E7%A0%81/ndt2.jpg" class="" title="ndt2.jpg">
+
 <p>然后编码器和解码器都是采用的vit（vision transformer）作为主结构，transformer能够处理序列信息，vit的做法是把二维图像切割开，分成若干个小块，然后排成一排，为每个小块加入位置信息，如此就把图像转化为了序列信息。然后把每个小块经过线性映射或者flatten操作后输入transformer encoder中，内部结构就是经典的多头注意力机制。</p>
 <p>然后是ndt2的一些设计思想。ndt1是直接把单条神经元的活动序列输入transformer进行学习，在不同任务中同一个个神经元的活动模式可能并不相同，所以每次只输入一个神经元进行学习可能会影响效果，但一次把所有的数据都序列化输入模型在计算上是行不通的，所以ndt2的作者就折中，把k条记录叠成二维图像，用vit的思想去处理数据。</p>
 <p>接下来讲实验。a图是在sorted data上进行的预训练的效果，b图是unsorted数据集上的结果，sort与否的区别就是，sort是按照对应刺激反射的波形分类后的。先看右边，这里的single-session应该代表的是单个神经元在不同时间段内的预测表现，这里的横杠不是连字符的意思，我的理解是single和multi指的是神经元的数量，session指的是时间，subject是任务类型，task是具体的任务，single-session指的就是单条神经元在不同时间做同一个动作，也就是scratch这个动作时的表现。r平方是统计学习里的决定系数，越大越好，nll是负的对数似然，越小越好。所以说越靠近左上角的点表现越好。可以看到ndt在两种类型的数据集中都是在multi-session上表现最好。也就是</p>
@@ -168,7 +170,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2024/02/24/%E7%A5%9E%E7%BB%8F%E4%BF%A1%E5%8F%B7%E8%A7%A3%E7%A0%81/" data-id="clszqeqxv0002bdvn8mqkfc1t" data-title="神经信号解码（未完成）" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="http://example.com/2024/02/24/%E7%A5%9E%E7%BB%8F%E4%BF%A1%E5%8F%B7%E8%A7%A3%E7%A0%81/" data-id="clszqjhxa0002fgvna33ca8l9" data-title="神经信号解码（未完成）" class="article-share-link"><span class="fa fa-share">Share</span></a>
       
       
       
